@@ -1,4 +1,6 @@
 const { Pool } = require('pg');
+const fs = require('fs');
+const path = require('path');
 require('dotenv').config();
 
 const pool = new Pool({
@@ -17,4 +19,18 @@ pool.on('error', (err) => {
   process.exit(-1);
 });
 
-module.exports = pool;
+// Функция для инициализации базы данных из schema.sql
+async function initDatabase() {
+  try {
+    const schemaPath = path.join(__dirname, 'schema.sql');
+    const schema = fs.readFileSync(schemaPath, 'utf8');
+
+    await pool.query(schema);
+    console.log('Database schema initialized successfully');
+  } catch (err) {
+    console.error('Error initializing database schema:', err.message);
+    throw err;
+  }
+}
+
+module.exports = { pool, initDatabase };

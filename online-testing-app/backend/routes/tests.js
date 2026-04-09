@@ -1,7 +1,7 @@
 const express = require('express');
 const { body, validationResult } = require('express-validator');
-const pool = require('../db');
-const { authenticateToken, authorizeRole } = require('../middleware/auth');
+const pool = require('../../db');
+const { authenticateToken, authorizeRole } = require('../../middleware/auth');
 const router = express.Router();
 
 // Get all tests (admin only)

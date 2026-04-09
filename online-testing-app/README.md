@@ -145,20 +145,136 @@ npm run dev
 
 ## Деплой на Render.com
 
-### Backend:
-1. Создайте новый Web Service
-2. Подключите репозиторий
-3. Build Command: `cd backend && npm install`
-4. Start Command: `cd backend && npm start`
-5. Добавьте переменные окружения из `.env`
+### 1. Подготовка базы данных
 
-### Frontend:
-1. Создайте новый Static Site
-2. Build Command: `cd frontend && npm run build`
-3. Publish Directory: `frontend/dist`
+1. Создайте PostgreSQL базу данных на Render:
+   - Dashboard → New → PostgreSQL
+   - Выберите регион и тариф (Free для тестирования)
+   - После создания скопируйте **Internal Database URL**
 
-### Database:
-Создайте PostgreSQL базу данных на Render и обновите `DATABASE_URL`
+2. Инициализируйте схему БД:
+   ```bash
+   psql <DATABASE_URL> -f backend/schema.sql
+   ```
+
+### 2. Деплой Backend
+
+1. Создайте новый **Web Service**:
+   - Dashboard → New → Web Service
+   - Connect your repository
+
+2. Настройте параметры:
+   - **Name**: `online-testing-backend`
+   - **Region**: выберите ближайший к вам
+   - **Branch**: `main`
+   - **Root Directory**: `backend`
+   - **Runtime**: `Node`
+   - **Build Command**: `npm install`
+   - **Start Command**: `npm start`
+
+3. Добавьте переменные окружения в разделе Environment:
+   ```
+   PORT=3001
+   NODE_ENV=production
+   DATABASE_URL=<ваш Internal Database URL от Render>
+   JWT_SECRET=<сгенерируйте случайную строку 32+ символов>
+   FRONTEND_URL=https://online-testing-frontend.onrender.com
+   SESSION_SECRET=<любая случайная строка>
+   LOG_REQUESTS=true
+   ```
+
+   Для генерации JWT_SECRET выполните локально:
+   ```bash
+   node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"
+   ```
+
+4. Нажмите **Create Web Service**
+
+### 3. Деплой Frontend
+
+1. Создайте новый **Static Site**:
+   - Dashboard → New → Static Site
+   - Connect your repository
+
+2. Настройте параметры:
+   - **Name**: `online-testing-frontend`
+   - **Branch**: `main`
+   - **Root Directory**: `frontend`
+   - **Build Command**: `npm install && npm run build`
+   - **Publish Directory**: `dist`
+
+3. Добавьте переменные окружения:
+   ```
+   API_URL=https://online-testing-backend.onrender.com/api
+   ```
+
+4. Нажмите **Create Static Site**
+
+### 4. Финальная настройка
+
+После деплоя frontend вы получите URL вида `https://online-testing-frontend.onrender.com`
+
+1. Вернитесь в настройки **Backend Web Service**
+2. Обновите переменную `FRONTEND_URL` на актуальный URL frontend
+3. Сохраните изменения — сервис перезапустится автоматически
+
+### 5. Проверка работы
+
+1. Откройте URL frontend в браузере
+2. Зарегистрируйте первого пользователя как админа через БД:
+   ```sql
+   UPDATE users SET role = 'admin' WHERE email = 'your-email@example.com';
+   ```
+3. Войдите под учетной записью админа
+4. Создайте тест и назначьте его студентам
+
+## Локальная разработка
+
+### Требования
+- Node.js 18+
+- PostgreSQL 14+
+- npm или yarn
+
+### Быстрый старт
+
+```bash
+# 1. Клонирование и установка зависимостей
+cd online-testing-app
+
+# Backend
+cd backend
+npm install
+
+# Frontend
+cd ../frontend
+npm install
+
+# 2. Настройка переменных окружения
+cd ..
+cp .env.example .env
+
+# Отредактируйте .env:
+# - DATABASE_URL=postgresql://postgres:пароль@localhost:5432/online_testing
+# - JWT_SECRET=случайная_строка_минимум_32_символа
+
+# 3. Создание базы данных
+createdb online_testing
+psql -d online_testing -f backend/schema.sql
+
+# 4. Запуск серверов (в разных терминалах)
+
+# Терминал 1 - Backend
+cd backend
+npm run dev
+
+# Терминал 2 - Frontend
+cd frontend
+npm run dev
+```
+
+Приложение доступно:
+- Frontend: http://localhost:3000
+- Backend API: http://localhost:3001
 
 ## Авторы
 

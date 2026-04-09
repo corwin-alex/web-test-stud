@@ -1,9 +1,6 @@
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 
-new webpack.DefinePlugin({
-  'process.env.API_URL': JSON.stringify(process.env.API_URL || '/api')
-})
 module.exports = {
   entry: './src/index.js',
   output: {
